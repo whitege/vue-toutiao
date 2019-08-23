@@ -1,0 +1,13 @@
+.idea
+.sass-cache
+*.DS_store
+*.DS_Store
+GPATH
+GRTAGS
+GTAGS
+auth.json
+
+# directories
+node_modules
+vendor-new
+temp
