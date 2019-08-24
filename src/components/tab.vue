@@ -23,7 +23,7 @@
 <script>
 /**
  * @file tab容器页
- * @author yuanxin
+ * @author wuyupeng
  */
 import Head from './head.vue';
 
