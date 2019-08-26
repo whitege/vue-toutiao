@@ -35,15 +35,19 @@ module.exports = {
                 }
             },
             {
+                // test: /\.css$/,
+                // use: [
+                //     {
+                //         loader: 'vue-style-loader'
+                //     },
+                //     {
+                //         loader: 'css-loader'
+                //     }
+                // ],
                 test: /\.css$/,
-                use: [
-                    {
-                        loader: 'vue-style-loader'
-                    },
-                    {
-                        loader: 'css-loader'
-                    }
-                ]
+                use: ['vue-style-loader', 'css-loader'],
+                include: path.join(__dirname, 'src'), //限制范围，提高打包速度
+                exclude: /node_modules/
             }
         ]
     },

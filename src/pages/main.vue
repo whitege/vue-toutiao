@@ -143,7 +143,8 @@ export default {
 
         showMoreTab(event) {
             if (event === 'hide') {
-                this.page = 'tab';
+                // this.page = 'tab';
+                this.$router.back()
             }
             else {
                 // this.page = 'setting';
