@@ -146,7 +146,8 @@ export default {
                 this.page = 'tab';
             }
             else {
-                this.page = 'setting';
+                // this.page = 'setting';
+                this.$router.push('/setting');
             }
         }
     }
