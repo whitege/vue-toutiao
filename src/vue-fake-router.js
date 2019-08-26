@@ -26,7 +26,7 @@
     static install (Vue, options) {
 
         Vue.mixin({
-            created() {
+            beforeCreate() {
                 // 自查
                 if (this.$options.router) {
                     this.$options.router.vm = this
