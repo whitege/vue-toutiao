@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+    <script>
+
+        class Dep {
+            constructor() {
+                // 都有谁监听我了
+                this.subs = [];
+            }
+
+            notify() {
+                const subs = this.subs.slice();
+                for (let i = 0, len = this.subs.length; i < len; i++) {
+                    this.subs[i].update();
+                }
+            }
+
+            addSub(sub) {
+                if (this.subs.indexOf(sub) === -1) {
+                    this.subs.push(sub);
+                }
+            }
+
+            addDepend() {
+                Dep.targets[Dep.targets.length - 1].addDep(this);
+            }
+        }
+
+        Dep.targets = [];
+
+        function pushTarget(instance) {
+            Dep.targets.push(instance);
+        }
+
+        function popTarget() {
+            return Dep.targets.pop();
+        }
+
+        class Watcher {
+            constructor(getter, callback) {
+                this.callback = callback;
+                this.getter = getter;
+                this.value = this.get();
+            }
+            get() {
+                pushTarget(this);
+                let value = this.getter();
+                popTarget();
+                return value;
+            }
+
+            addDep(dep) {
+                dep.addSub(this);
+            }
+
+            update() {
+                let newValue = this.get();
+                this.value = newValue;
+            }
+        }
+
+        function proxy(target, data, key) {
+            Object.defineProperty(target, key, {
+                get() {
+                    return data[key];
+                },
+                set(newVal) {
+                    // 通知刷新
+                    console.log('通知刷新');
+                    data[key] = newVal;
+                }
+            })
+        }
+
+        class Observer {
+            constructor(obj) {
+                this.walk(obj)
+            }
+            walk(obj, updateCb) {
+                Object.keys(obj)
+                    .forEach(key => {
+                        if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            this.walk(obj[key])
+                        }
+                        defineReactive(obj, key, obj[key], updateCb);
+                    });
+                return obj;
+            }
+        }
+
+        function defineReactive(target, key, value) {
+            const dep = new Dep();
+            Object.defineProperty(target, key, {
+                get() {
+                    console.log('get!!!!!', key);
+                    if (Dep.targets.length > 0) {
+                        dep.addDepend();
+                    }
+                    return value;
+                },
+                set(newVal) {
+                    console.log('set!!!!:', newVal)
+                    value = newVal;
+                    dep.notify(); //  ***
+                }
+            })
+        }
+
+        class Vue {
+            constructor(options) {
+                this.$el = document.querySelector(options.el);
+                this._data = options.data && options.data()
+                new Observer(this._data);
+                this.render = options.render;
+                for (let key in this._data) {
+                    proxy(this, this._data, key);
+                }
+                // this._update();
+                new Watcher(()=>{
+                    console.log('update!!!!')
+                    this._update()
+                },()=>{
+                    console.log('callback!!!!')
+                })
+            }
+
+            _createElement(tagName, data, children) {
+                const tag = document.createElement(tagName);
+                const { attrs = {} } = data;
+                for (let attrName in attrs) {
+                    tag.setAttribute(attrName, attrs[attrName]);
+                }
+                if (Object.prototype.toString.call(children) !== '[object Array]') {
+                    let child = document.createTextNode(children);
+                    tag.appendChild(child);
+                } else {
+                    children.forEach(child => {
+                        tag.appendChild(child);
+                    });
+                }
+                return tag;
+            }
+
+            _update() {
+                const $root = this.render(this._createElement);
+                console.log('root::', $root);
+                api.replaceChild(this.$el, $root);
+            }
+        }
+
+        const api = {
+            replaceChild(oldElement, element) {
+                window.oldElement = oldElement;
+                return oldElement.parentElement.replaceChild(element, oldElement);
+            }
+        }
+
+        window.app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    price: 27,
+                    infos: {
+                        title: '猪肉的价格'
+                    }
+                }
+            },
+            render(createElement) {
+                return createElement('div', {
+                    attrs: {
+                        title: this._data.infos.title
+                    }
+                },
+                    [
+                        createElement(
+                            'span',
+                            {},
+                            this._data.price
+                        )
+                    ]);
+            },
+        })
+    </script>
+</body>
+
+</html>
